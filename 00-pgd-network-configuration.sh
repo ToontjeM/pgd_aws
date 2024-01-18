@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ########################################################################################################################
-# Author:      Sergio Romera                                                                                           #
+# Author:      Ton Machielsen                                                                                          #
 # Date:        15/01/2024                                                                                              #
 # Subject:     Network configuration                                                                                   #
 # Description: This script create and provision with TPA the necessary network to operate with a PGD cluster           #
@@ -14,8 +14,8 @@
 . ./config.sh
 
 cd
-git config --global user.email "sergio.romera@enterprisedb.com"
-git config --global user.name "Sergio Romera"
+git config --global user.email "ton.machielsen@enterprisedb.com"
+git config --global user.name "Ton Machielsen"
 
 rm -rf ~/sro-pgdnetwork
 

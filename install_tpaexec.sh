@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ########################################################################################################################
 # Author:      Sergio Romera                                                                                           #
@@ -7,25 +7,37 @@
 # Description: Install TPA in a VM. This VM willpilot all the deployments in AWS                                       #
 ########################################################################################################################
 
-# PGD 5.x
-curl -1sLf "https://downloads.enterprisedb.com/$credentials/postgres_distributed/setup.rpm.sh" | sudo -E bash
+if [[ -z "${credentials}" ]]; then
+    echo "Please set $credentails variable"
+else
 
-# TPA
-sudo yum -y install python39 python3-pip epel-release git openvpn patch
-git clone https://github.com/enterprisedb/tpa.git ~/tpa
+    # Repo
+    curl -1sLf "https://downloads.enterprisedb.com/$credentials/postgres_distributed/setup.rpm.sh" | sudo -E bash
 
-cat >> ~/.bash_profile <<EOF
-export PATH=$PATH:$HOME/tpa/bin
+    # TPA
+    sudo yum -y install python39 python3-pip epel-release git openvpn patch
+    sudo rm /etc/alternatives/python3
+    sudo ln /usr/bin/python3.9 /etc/alternatives/python3
+
+    if [ -d $HOME/tpa ]; then
+        echo "TPA exists. Removing..."
+        sudo rm -rf $HOME/tpa
+        git clone https://github.com/enterprisedb/tpa.git $HOME/tpa
+    fi
+    sudo /home/vagrant/tpa/bin/tpaexec setup
+
+    #yum -y install wget chrony tpaexec tpaexec-deps
+    # Config file: /etc/chrony.conf
+    sudo systemctl enable --now chronyd
+    chronyc sources
+
+    cat >> $HOME/.bash_profile <<EOF
+    export PATH=$PATH:$HOME/tpa/bin
+    export EDB_SUBSCRIPTION_TOKEN=${credentials}
 EOF
-source ~/.bash_profile
 
-#yum -y install wget chrony tpaexec tpaexec-deps
-# Config file: /etc/chrony.conf
-systemctl enable --now chronyd
-chronyc sources
+    source $HOME/.bash_profile
 
-cat >> ~/.bash_profile <<EOF
-#export PATH=$PATH:/opt/EDB/TPA/bin
-export EDB_SUBSCRIPTION_TOKEN=${credentials}
-EOF
-source ~/.bash_profile
+    tpaexec selftest
+
+fi

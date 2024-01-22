@@ -10,7 +10,7 @@
 # AWS CLI
 sudo yum remove awscli
 
-yum install -y unzip
+sudo yum install -y unzip
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 mv awscliv2.zip /tmp
 cd /tmp 

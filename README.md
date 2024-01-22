@@ -1,6 +1,9 @@
 # Deployment
-- Install AWS CLI
-- Install tpaexec
+- Install VirtualBox and Vagrant
+- `vagrant up`
+- `vagrant ssh`
+- Install AWS CLI ✓
+- Install tpaexec ✓
 - Deploy network (script 00)
 - Create peering connections
   - ohio - virginia

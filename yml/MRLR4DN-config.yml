@@ -3,7 +3,7 @@ architecture: PGD-Always-ON
 cluster_name: sro-pgdcluster-mr
 cluster_tags:
   Owner: SRO
-cluster_bucket: sergio3-bucket
+cluster_bucket: tmtpaexec
 
 ec2_groups:
   us-east-2:

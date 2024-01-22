@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ########################################################################################################################
-# Author:      Ton Machielsen                                                                                          #
+# Author:      Sergio Romera                                                                                           #
 # Date:        15/01/2024                                                                                              #
 # Subject:     Network configuration                                                                                   #
 # Description: This script create and provision with TPA the necessary network to operate with a PGD cluster           #
@@ -20,10 +20,10 @@ git config --global user.name "Ton Machielsen"
 rm -rf ~/sro-pgdnetwork
 
 #tpaexec setup
-tpaexec setup --use-2q-ansible
-
-# Test
-tpaexec selftest
+#tpaexec setup --use-2q-ansible
+#
+## Test
+#tpaexec selftest
 
 tpaexec configure ~/sro-pgdnetwork  --architecture PGD-Always-ON \
                                     --platform aws  \

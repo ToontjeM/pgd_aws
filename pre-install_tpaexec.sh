@@ -8,36 +8,35 @@
 ########################################################################################################################
 
 if [[ -z "${credentials}" ]]; then
-    echo "Please set $credentails variable"
+    echo "Please set credentails variable"
 else
 
     # Repo
     curl -1sLf "https://downloads.enterprisedb.com/$credentials/postgres_distributed/setup.rpm.sh" | sudo -E bash
 
     # TPA
-    sudo yum -y install python39 python3-pip epel-release git openvpn patch
+    sudo yum -y install python39 python3-pip epel-release git openvpn patch libselinux-python
     sudo rm /etc/alternatives/python3
     sudo ln /usr/bin/python3.9 /etc/alternatives/python3
 
     if [ -d $HOME/tpa ]; then
         echo "TPA exists. Removing..."
         sudo rm -rf $HOME/tpa
-        git clone https://github.com/enterprisedb/tpa.git $HOME/tpa
     fi
-    sudo /home/vagrant/tpa/bin/tpaexec setup
+    git clone https://github.com/enterprisedb/tpa.git $HOME/tpa
+    sudo /home/vagrant/tpa/bin/tpaexec setup --use-2q-ansible
 
-    #yum -y install wget chrony tpaexec tpaexec-deps
+    #yum -y install wget chrony tpaexec tpaexec-dep
     # Config file: /etc/chrony.conf
     sudo systemctl enable --now chronyd
     chronyc sources
 
     cat >> $HOME/.bash_profile <<EOF
-    export PATH=$PATH:$HOME/tpa/bin
-    export EDB_SUBSCRIPTION_TOKEN=${credentials}
+export PATH=$PATH:$HOME/tpa/bin
+export EDB_SUBSCRIPTION_TOKEN=${credentials}
 EOF
 
-    source $HOME/.bash_profile
-
-    tpaexec selftest
+source ~/.bash_profile
+tpaexec selftest
 
 fi

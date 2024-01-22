@@ -38,7 +38,7 @@
 . ./config.sh
 . /vagrant/repo.sh
 
-export EDB_SUBSCRIPTION_TOKEN=$repo_credentials
+#export EDB_SUBSCRIPTION_TOKEN=$repo_credentials
 
 # WARNING: Check subnet association before to start
 # https://github.com/EnterpriseDB/se-demos/blob/main/PGD/AWS-Multi-Region/README.md

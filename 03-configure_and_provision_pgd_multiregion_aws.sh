@@ -10,7 +10,7 @@
 . ./config.sh
 . /vagrant/repo.sh
 
-export EDB_SUBSCRIPTION_TOKEN=$repo_credentials
+#export EDB_SUBSCRIPTION_TOKEN=$repo_credentials
 
 rm -Rf ~/sro-pgdcluster-mr
 

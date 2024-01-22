@@ -4,16 +4,16 @@ cluster_name: sro-pgdnetwork
 cluster_tags:
   Owner: SRO
 
-cluster_bucket: sergio3-bucket
+cluster_bucket: tmtpaexec
 
 cluster_rules:
 # curl ipinfo.io/ip
 # 2.13.234.57
-- cidr_ip: 2.13.234.57/32  # IMPORTANT:  Modify 0.0.0.0 in this rule to be the IP/subnet of the system where you are running TPAExec.  Allows SSH access to cluster nodes (e.g. for TPAExec). 
+- cidr_ip: 92.178.20.222/32  # IMPORTANT:  Modify 0.0.0.0 in this rule to be the IP/subnet of the system where you are running TPAExec.  Allows SSH access to cluster nodes (e.g. for TPAExec). 
   from_port: 22
   proto: tcp
   to_port: 22
-- cidr_ip: 2.13.234.57/32
+- cidr_ip: 92.178.20.222/32
   from_port: 6432
   proto: tcp
   to_port: 6432

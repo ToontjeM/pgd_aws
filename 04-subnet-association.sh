@@ -32,7 +32,8 @@ aws ec2 describe-route-tables \
 
 while read -r line;
 do
-  aws ec2 disassociate-route-table --association-id $line
+  aws ec2 disassociate-route-table --association-id $line \
+  --region $region
 done < /tmp/routetable_assotiation_ids_oregon.txt
 
 while read -r line;

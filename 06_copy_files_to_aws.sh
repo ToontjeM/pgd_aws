@@ -7,6 +7,8 @@
 # Description: Copy demo scripts and monitoring tool to each AWS machine                                               #
 ########################################################################################################################
 
+. ./config.sh
+
 # Password is necessary for monitoring tool
 echo "Export password to file"
 tpaexec show-password ~/sro-pgdcluster-mr enterprisedb > /tmp/password.txt

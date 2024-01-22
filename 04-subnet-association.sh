@@ -8,6 +8,8 @@
 #              Disassociate from pgdcluster and associate subnets to pgdnetwork route table                            #
 ########################################################################################################################
 
+. ./config.sh
+
 # **************
 # *** Oregon ***
 # **************

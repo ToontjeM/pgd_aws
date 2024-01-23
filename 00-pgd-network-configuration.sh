@@ -29,17 +29,11 @@ tpaexec configure ~/sro-pgdnetwork  --architecture PGD-Always-ON \
                                     --platform aws  \
                                     --postgresql \
                                     --postgres-version 15 \
-                                    --pgd-proxy-routing local
+                                    --pgd-proxy-routing local \
+                                    --no-git
 
 yes | cp -f /vagrant/yml/PGDNetwork.yml ~/sro-pgdnetwork/config.yml
 
-mkdir ~/.aws
-cat > ~/.aws/credentials <<EOF
-[default]
-aws_access_key_id = $AWS_ACCESS_KEY_ID
-aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
-aws_session_token=$AWS_SESSION_TOKEN
-EOF
 
 tpaexec provision ~/sro-pgdnetwork
 

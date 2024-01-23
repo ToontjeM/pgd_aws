@@ -53,6 +53,10 @@ do
   ssh -F ssh_config  $machine "sudo cp -r /tmp/monitoring/* /var/lib/edb-as/monitoring"
   ssh -F ssh_config  $machine "sudo cp -r /tmp/scripts/* /var/lib/edb-as/scripts"
   ssh -F ssh_config  $machine "sudo cp -r /tmp/password.txt /var/lib/edb-as/password.txt"
+  ssh -F ssh_config  $machine "sudo rm /tmp/nodes.txt"
+  ssh -F ssh_config  $machine "sudo rm /tmp/groups.txt"
+  ssh -F ssh_config  $machine "sudo rm /tmp/nodes_tmp.txt"
+  ssh -F ssh_config  $machine "sudo rm /tmp/groups_tmp.txt"
 
   let i++
 

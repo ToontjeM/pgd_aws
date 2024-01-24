@@ -305,7 +305,10 @@ Stop all panes.
 
   `select * from names; \watch`
 
-- BL: `select * from bdr.conflict_history_summary; \watch`
+- BL: 
+  `\x`
+
+  `select * from bdr.conflict_history_summary; \watch`
 
 - TL:
   `\! clear`
@@ -316,7 +319,222 @@ Stop all panes.
   `\! clear`
   `begin; insert into names(name, number) values('James',1);`
 
+- TL: `commit;`
+- TR: `commit;`
+- BR: `select * from names;`
+
+``` 
+-[ RECORD 1 ]-
+name   | James
+number | 1
+```
+
+- BL:
+```
+-[ RECORD 1 ]-----------+---------------------------------
+nspname                 | public
+relname                 | names
+origin_node_id          | 4
+remote_commit_lsn       | 0/9109AE0
+remote_change_nr        | 2
+local_time              | 24-JAN-24 13:15:40.035736 +00:00
+local_tuple_commit_time | 24-JAN-24 13:15:28.657639 +00:00
+remote_commit_time      | 24-JAN-24 13:15:40.008453 +00:00
+conflict_type           | insert_exists
+conflict_resolution     | apply_remote
+```
+
+#### 3b UPDATE-UPDATE
+
+- TL:
+  `\! clear`
+
+  `begin; update names set number=2 where number=1`
+
+- TR:
+  `\! clear`
+
+  `begin; update names set number=3 where number=1`
+
+- TL: `commit;`
+- TR: `commit;`
+- BR: `select * from names;`
+
+  ```
+  -[ RECORD 1 ]-
+   name  | number
+  -------+--------
+   James |      3
+   James |      2
+  (2 rows)
+
+  ```
+
+- BL: 
+  ``` 
+  -[ RECORD 2 ]-----------+---------------------------------
+  nspname                 | public
+  relname                 | names
+  origin_node_id          | 4
+  remote_commit_lsn       | 0/9190F90
+  remote_change_nr        | 2
+  local_time              | 24-JAN-24 13:41:06.934217 +00:00
+  local_tuple_commit_time |
+  remote_commit_time      | 24-JAN-24 13:40:12.759348 +00:00
+  conflict_type           | update_missing
+  conflict_resolution     | apply_remote
+  ```
+
+#### UPDATE-DELETE
+
+- TL:
+  `\! clear`
+
+  `begin; delete from names where number=1;`
+
+- TR:
+  `\! clear`
+
+  `begin; update names set name="Pete" where number=1;`
+
+- TL: `commit;`
+- TR: `commit;`
+- BR: `select * from names;`
+
+```
+-[ RECORD 3 ]-----------+---------------------------------
+nspname                 | public
+relname                 | names
+origin_node_id          | 4
+remote_commit_lsn       | 0/9399090
+remote_change_nr        | 2
+local_time              | 24-JAN-24 15:10:26.805978 +00:00
+local_tuple_commit_time |
+remote_commit_time      | 24-JAN-24 15:10:26.780809 +00:00
+conflict_type           | update_missing
+conflict_resolution     | apply_remote
+```
+
 ### 04-Upgrades
+
+Open two panes, both logged in to pgd1-useast2.
+- Left panel (L): 
+  `sudo -i`
+  `cd /var/lib/edb-as/scripts/04-upgrades/`
+
+- Right panel (R):
+  `sudo su - enterprisedb`
+  `cd scripts/04-upgrades`
+
+- R: 
+  - Show current PGD version using `./01_[enterprisedb]_show_version.sh`.
+
+    ```
+      Node            BDR Version Postgres Version
+    ----            ----------- ----------------
+    barman-useast2  5.3.0       15.5.0 (Debian 15.5.0-1.buster)
+    barman-uswest2  5.3.0       15.5.0 (Debian 15.5.0-1.buster)
+    pgd1-useast2    5.3.0       15.5.0 (Debian 15.5.0-1.buster)
+    pgd1-uswest2    5.3.0       15.5.0 (Debian 15.5.0-1.buster)
+    pgd2-useast2    5.3.0       15.5.0 (Debian 15.5.0-1.buster)
+    pgd2-uswest2    5.3.0       15.5.0 (Debian 15.5.0-1.buster)
+    witness-useast1 5.3.0       15.5.0 (Debian 15.5.0-1.buster)
+    ```
+  - Switch to PGD2 as write leader using `./02_[enterprisedb]_switchover.sh`. Show Monitoring if needed.
+    ```
+    switchover is complete
+    ```
+
+- L: 
+  - Stop Postgres using `./03_[root]_stop_postgres.sh`.
+
+  - Install EPAS16 using `./04_[root]_install_edb_pgd5.sh`
+    ```
+    Success. You can now start the database server using:
+
+    /usr/lib/edb-as/16/bin/pg_ctl -D /var/lib/edb-as/16/main -l logfile start
+
+    Ver Cluster Port Status Owner        Data directory          Log file
+    16  main    5445 down   enterprisedb /var/lib/edb-as/16/main /var/log/edb-as/edb-as-16-main.log
+    Setting up edb-bdr5-epas16 (4:5.3.0-11.buster) ...
+    Processing triggers for edb-as-common (196) ...
+    Building EPAS dictionaries from installed myspell/hunspell packages...
+    Removing obsolete dictionary files:
+    ```
+
+  - Create new data directories using `./05_[root]_create_new_data_directories.sh`
+    ```
+    drwx------ 21 enterprisedb enterprisedb  4096 Jan 24 15:42 data
+    drwxr-xr-x  2 enterprisedb enterprisedb  4096 Jan 24 15:45 datanew
+    drwx------  2 root         root         16384 Jan 23 12:43 lost+found
+    ```
+
+- R:
+  - Create new DB using `./06_[enterprisedb]_initdb_epas16.sh`
+    ```
+    Success. You can now start the database server using:
+
+    /usr/lib/edb-as/16/bin/pg_ctl -D /opt/postgres/datanew -l logfile start
+    ```
+
+  - Migrate Postgres configuration to new version using `./07_[enterprisedb]_copy_config.sh`
+
+- L:
+  - Move data to new version using `./08_[root]rename_pgdata.sh`
+
+- R:
+  - Make sure both versions of Postgres are stopped using `./09_[enterprisedb]_stop_instances.sh`
+
+  - Check of both instances are ready for upgrading using `./10_[enterprisedb]_bdr_pg_upgrade_check.sh`
+
+    ```
+      Performing BDR Postgres Checks
+      ------------------------------
+      Collecting pre-upgrade new cluster control data             ok
+      Checking new cluster state is shutdown                      ok
+      Checking BDR versions                                       ok
+
+      Passed all bdr_pg_upgrade checks, now calling pg_upgrade
+
+      Performing Consistency Checks
+      -----------------------------
+      Checking cluster versions                                     ok
+      Checking database user is the install user                    ok
+      Checking database connection settings                         ok
+      Checking for prepared transactions                            ok
+      Checking for system-defined composite types in user tables    ok
+      Checking for reg* data types in user tables                   ok
+      Checking for contrib/isn with bigint-passing mismatch         ok
+      Checking for incompatible "aclitem" data type in user tables  ok
+      Checking for presence of required libraries                   ok
+      Checking database user is the install user                    ok
+      Checking for prepared transactions                            ok
+      Checking for new cluster tablespace directories               ok
+
+      Clusters are compatible*
+    ```
+
+  - Perform the actuall update using `./11_[enterprisedb]_bdr_pg_upgrade.sh`
+    ```
+    
+    ```
+
+  - As root, running `./12_[root]_amend_service.sh`
+
+  - As root, running `./13_[root]_start_postgres.sh`
+
+  - As enterprisedb, running `./14_[enterprisedb]_check.sh`
+
+  - As enterprisedb, running `./15_[enterprisedb]_upgrade_extensions.sh`
+
+  - As enterprisedb, running `./16_[enterprisedb]_vacuumdb.sh`
+
+  - As enterprisedb, running `./17_[enterprisedb]_reenable_access.sh`
+
+  - As enterprisedb, running `./18_[enterprisedb]_switchover.sh`
+
+  - As root, running `./20_[root]_remove_old_epas.sh`
+
 
 ### 06-Selective Replication
 

@@ -15,9 +15,13 @@
 
 psql -h pgd1-uswest2,pgd2-uswestt2,pgd1-useast2,pgd2-useastt2 -p 6432 bdrdb -c \
 "
-SELECT node_group_name, default_repset, parent_group_name
-FROM bdr.node_group_summary;
+SELECT node_group_name, default_repset, parent_group_name FROM bdr.node_group_summary;
+
+SELECT bdr.replication_set_add_table('opinion', 'us_east_2_subgroup');
+SELECT bdr.replication_set_add_table('opinion', 'us_west_2_subgroup');
+
 SELECT bdr.replication_set_remove_table('opinion', 'pgdcluster');
+
 SELECT relname, set_name FROM bdr.tables ORDER BY relname, set_name;
 INSERT INTO work VALUES (1, 'Aida', 'Verdi');
 INSERT INTO work VALUES (2, 'Lohengrin', 'Wagner');

@@ -38,9 +38,8 @@ cluster_vars:
   # BEGIN TDE
   extra_bashrc_lines:
   - alias ll=ls\ -l
-  - >-
-    export PGDATAKEYWRAPCMD='openssl enc -e -aes256 -pass pass:ok -out %p'
-    export PGDATAKEYUNWRAPCMD='openssl enc -d -aes256 -pass pass:ok -in %p'
+  - export PGDATAKEYWRAPCMD='openssl enc -e -aes256 -pass pass:ok -out %p'
+  - export PGDATAKEYUNWRAPCMD='openssl enc -d -aes256 -pass pass:ok -in %p'
   #END TDE
   bdr_node_groups:
   - name: pgdcluster
@@ -144,19 +143,6 @@ instance_defaults:
     - "--key-unwrap-command=-"
     # END TDE
 instances:
-# New node
-- Name: pgd3-useast2
-  location: useast2a
-  node: 20
-  role:
-  - bdr
-  - pgd-proxy
-  vars:
-    postgres_version: 16
-    bdr_child_group: us_east_2_subgroup
-    bdr_node_options:
-      route_priority: 100
-# End new node
 - Name: pgd1-useast2
   backup: barman-useast2
   location: useast2a
@@ -172,7 +158,6 @@ instances:
     #pgbouncer_max_client_conn: 3000
     #pgbouncer_pool_mode: transaction
     #pgbouncer_pool_size: 10
-    postgres_version: 15
     bdr_child_group: us_east_2_subgroup
     bdr_node_options:
       route_priority: 100

@@ -38,9 +38,8 @@ cluster_vars:
   # BEGIN TDE
   extra_bashrc_lines:
   - alias ll=ls\ -l
-  - >-
-    export PGDATAKEYWRAPCMD='openssl enc -e -aes256 -pass pass:ok -out %p'
-    export PGDATAKEYUNWRAPCMD='openssl enc -d -aes256 -pass pass:ok -in %p'
+ # - export PGDATAKEYWRAPCMD='openssl enc -e -aes256 -pass pass:ok -out %p'
+ # - export PGDATAKEYUNWRAPCMD='openssl enc -d -aes256 -pass pass:ok -in %p'
   #END TDE
   bdr_node_groups:
   - name: pgdcluster
@@ -151,14 +150,7 @@ instances:
   role:
   - bdr
   - pgd-proxy
-  #- pgbouncer
   vars:
-    #pgbouncer_port: 7432
-    #pgbouncer_backend: pgd1-useast2
-    #pgbouncer_backend_port: 6432
-    #pgbouncer_max_client_conn: 3000
-    #pgbouncer_pool_mode: transaction
-    #pgbouncer_pool_size: 10
     bdr_child_group: us_east_2_subgroup
     bdr_node_options:
       route_priority: 100
@@ -168,14 +160,7 @@ instances:
   role:
   - bdr
   - pgd-proxy
-  #- pgbouncer
   vars:
-    #pgbouncer_port: 7432
-    #pgbouncer_backend: pgd2-useast2
-    #pgbouncer_backend_port: 6432
-    #pgbouncer_max_client_conn: 3000
-    #pgbouncer_pool_mode: transaction
-    #pgbouncer_pool_size: 10
     bdr_child_group: us_east_2_subgroup
     bdr_node_options:
       route_priority: 75
@@ -185,14 +170,7 @@ instances:
   role:
   - bdr
   - pgd-proxy
-  #- pgbouncer
   vars:
-    #pgbouncer_port: 7432
-    #pgbouncer_backend: pgd1-uswest2
-    #pgbouncer_backend_port: 6432
-    #pgbouncer_max_client_conn: 3000
-    #pgbouncer_pool_mode: transaction
-    #pgbouncer_pool_size: 10
     bdr_child_group: us_west_2_subgroup
     bdr_node_options:
       route_priority: 100
@@ -202,14 +180,7 @@ instances:
   role:
   - bdr
   - pgd-proxy
-  #- pgbouncer
   vars:
-    #pgbouncer_port: 7432
-    #pgbouncer_backend: pgd2-uswest2
-    #pgbouncer_backend_port: 6432
-    #pgbouncer_max_client_conn: 3000
-    #pgbouncer_pool_mode: transaction
-    #pgbouncer_pool_size: 10
     bdr_child_group: us_west_2_subgroup
     bdr_node_options:
       route_priority: 75

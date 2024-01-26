@@ -1,0 +1,254 @@
+---
+architecture: PGD-Always-ON
+cluster_name: sro-pgdcluster-mr
+cluster_tags:
+  Owner: SRO
+cluster_bucket: tmtpaexec
+
+ec2_groups:
+  us-east-2:
+    group-name:
+      - Group sro-pgdnetwork/us-east-2
+  us-west-2:
+    group-name:
+      - Group sro-pgdnetwork/us-west-2
+  us-east-1:
+    group-name:
+      - Group sro-pgdnetwork/us-east-1
+
+ec2_ami:
+  Name: debian-10-amd64-20230601-1398
+  Owner: '136693071363'
+ec2_instance_reachability: public
+
+ec2_vpc:
+ us-east-2:
+   Name: PGDUSEAST2
+   #cidr: 10.33.0.0/16
+ us-west-2:
+   Name: PGDUSWEST2
+   #cidr: 10.34.0.0/16
+ us-east-1:
+   Name: PGDUSEAST1
+   #cidr: 10.35.0.0/16
+
+cluster_vars:
+  bdr_database: bdrdb
+  bdr_node_group: pgdcluster
+  # BEGIN TDE
+  extra_bashrc_lines:
+  - alias ll=ls\ -l
+  - export PGDATAKEYWRAPCMD='openssl enc -e -aes256 -pass pass:ok -out %p'
+  - export PGDATAKEYUNWRAPCMD='openssl enc -d -aes256 -pass pass:ok -in %p'
+  #END TDE
+  bdr_node_groups:
+  - name: pgdcluster
+    options:
+      enable_raft: true
+      enable_proxy_routing: false
+
+  - name: us_east_2_subgroup
+    parent_group_name: pgdcluster
+    options:
+      enable_raft: true
+      enable_proxy_routing: true
+
+  - name: us_west_2_subgroup
+    parent_group_name: pgdcluster
+    options:
+      enable_raft: true
+      enable_proxy_routing: true
+
+  - name: us_east_1_subgroup
+    parent_group_name: pgdcluster
+    options:
+      enable_raft: false
+      enable_proxy_routing: false
+
+  bdr_version: '5'
+  default_pgd_proxy_options:
+    listen_port: 6432
+  edb_repositories:
+  - enterprise # use this when installing EPAS
+  #- standard # use this when installing postgresql
+  - postgres_distributed
+  
+  enable_pg_backup_api: false
+  failover_manager: pgd
+  postgres_coredump_filter: '0xff'
+  postgres_version: '15'
+
+  postgresql_flavour: epas
+  #postgresql_flavour: postgresql
+ 
+  preferred_python_version: python3
+  use_volatile_subscriptions: false
+
+  #SRO
+  #extra_bashrc_lines:
+  #- alias ll=ls\ -l
+
+locations:
+- Name: useast2a
+  az: us-east-2a
+  region: us-east-2
+  subnet: 10.33.1.64/26
+- Name: useast2b
+  az: us-east-2b
+  region: us-east-2
+  subnet: 10.33.2.64/26
+- Name: useast2c
+  az: us-east-2c
+  region: us-east-2
+  subnet: 10.33.3.64/26
+- Name: uswest2a
+  az: us-west-2a
+  region: us-west-2
+  subnet: 10.34.1.64/26
+- Name: uswest2b
+  az: us-west-2b
+  region: us-west-2
+  subnet: 10.34.2.64/26
+- Name: uswest2c
+  az: us-west-2c
+  region: us-west-2
+  subnet: 10.34.3.64/26
+- Name: useast1a
+  az: us-east-1a
+  region: us-east-1
+  subnet: 10.35.1.64/26
+
+instance_defaults:
+  default_volumes:
+  - device_name: root
+    encrypted: true
+    volume_size: 16
+    volume_type: gp2
+  - device_name: /dev/sdf
+    encrypted: true
+    vars:
+      volume_for: postgres_data
+    volume_size: 64
+    volume_type: gp2
+  platform: aws
+  type: t3.small
+  vars:
+    ansible_user: admin
+    # BEGIN TDE
+    postgres_initdb_opts:
+    - -E UTF8
+    - --data-checksums
+    - --data-encryption
+    - "--key-wrap-command=-"
+    - "--key-unwrap-command=-"
+    # END TDE
+instances:
+- Name: pgd1-useast2
+  backup: barman-useast2
+  location: useast2a
+  node: 1
+  role:
+  - bdr
+  - pgd-proxy
+  #- pgbouncer
+  vars:
+    #pgbouncer_port: 7432
+    #pgbouncer_backend: pgd1-useast2
+    #pgbouncer_backend_port: 6432
+    #pgbouncer_max_client_conn: 3000
+    #pgbouncer_pool_mode: transaction
+    #pgbouncer_pool_size: 10
+    bdr_child_group: us_east_2_subgroup
+    bdr_node_options:
+      route_priority: 100
+- Name: pgd2-useast2
+  location: useast2b
+  node: 2
+  role:
+  - bdr
+  - pgd-proxy
+  #- pgbouncer
+  vars:
+    #pgbouncer_port: 7432
+    #pgbouncer_backend: pgd2-useast2
+    #pgbouncer_backend_port: 6432
+    #pgbouncer_max_client_conn: 3000
+    #pgbouncer_pool_mode: transaction
+    #pgbouncer_pool_size: 10
+    bdr_child_group: us_east_2_subgroup
+    bdr_node_options:
+      route_priority: 75
+- Name: pgd1-uswest2
+  location: uswest2a
+  node: 3
+  role:
+  - bdr
+  - pgd-proxy
+  #- pgbouncer
+  vars:
+    #pgbouncer_port: 7432
+    #pgbouncer_backend: pgd1-uswest2
+    #pgbouncer_backend_port: 6432
+    #pgbouncer_max_client_conn: 3000
+    #pgbouncer_pool_mode: transaction
+    #pgbouncer_pool_size: 10
+    bdr_child_group: us_west_2_subgroup
+    bdr_node_options:
+      route_priority: 100
+- Name: pgd2-uswest2
+  location: uswest2b
+  node: 4
+  role:
+  - bdr
+  - pgd-proxy
+  #- pgbouncer
+  vars:
+    #pgbouncer_port: 7432
+    #pgbouncer_backend: pgd2-uswest2
+    #pgbouncer_backend_port: 6432
+    #pgbouncer_max_client_conn: 3000
+    #pgbouncer_pool_mode: transaction
+    #pgbouncer_pool_size: 10
+    bdr_child_group: us_west_2_subgroup
+    bdr_node_options:
+      route_priority: 75
+- Name: witness-useast1
+  location: useast1a
+  node: 5
+  role:
+  - bdr
+  - witness
+  vars:
+    bdr_child_group: us_east_1_subgroup
+- Name: barman-useast2
+  location: useast2c
+  node: 10
+  role:
+  - barman
+  - bdr
+  - witness
+  vars:
+    bdr_child_group: us_east_2_subgroup
+  volumes:
+  - device_name: /dev/sdf
+    encrypted: true
+    vars:
+      volume_for: barman_data
+    volume_size: 128
+    volume_type: gp2
+- Name: barman-uswest2
+  location: uswest2c
+  node: 11
+  role:
+  - barman
+  - bdr
+  - witness
+  vars:
+    bdr_child_group: us_west_2_subgroup
+  volumes:
+  - device_name: /dev/sdf
+    encrypted: true
+    vars:
+      volume_for: barman_data
+    volume_size: 128
+    volume_type: gp2

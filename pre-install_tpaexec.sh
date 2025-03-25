@@ -23,7 +23,8 @@ else
         echo "TPA exists. Removing..."
         sudo rm -rf $HOME/tpa
     fi
-    git clone https://github.com/enterprisedb/tpa.git $HOME/tpa
+    sudo dnf install -y tpaexec
+    #git clone https://github.com/enterprisedb/tpa.git $HOME/tpa
     sudo /home/vagrant/tpa/bin/tpaexec setup --use-2q-ansible
 
     #yum -y install wget chrony tpaexec tpaexec-dep
